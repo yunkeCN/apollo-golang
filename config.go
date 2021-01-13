@@ -16,7 +16,7 @@ type ApolloResponse struct {
 	ReleaseKey     string            `json:"releaseKey"`
 }
 
-func LoadApolloConfig(appId, namespace string) (error, interface{}) {
+func LoadApolloConfig(appId, namespace string, appConfig interface{}) error {
 	apolloURL := os.Getenv("APOLLO_META_SERVER_URL")
 	if apolloURL == "" {
 		apolloURL = "http://120.77.148.214:18011/"
@@ -26,13 +26,22 @@ func LoadApolloConfig(appId, namespace string) (error, interface{}) {
 	url := fmt.Sprintf("%s/configs/%s/default/%s", apolloURL, appId, namespace)
 	get, err := http.Get(url)
 	if err != nil {
-		return err, nil
+		return err
 	}
 	apollo := new(ApolloResponse)
 	all, _ := ioutil.ReadAll(get.Body)
 	if err := json.Unmarshal(all, apollo); err != nil {
-		return err, nil
+		return err
 	}
 
-	return nil, apollo.Configurations
+	bytes, err := json.Marshal(apollo.Configurations)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bytes, appConfig)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
