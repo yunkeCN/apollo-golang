@@ -165,6 +165,9 @@ func SaveWatchConfigField(v interface{}, fields map[string]*Field, client agollo
 			value = c.GetStringValue(apolloKeyName, "")
 		case reflect.Bool:
 			value = c.GetBoolValue(apolloKeyName, false)
+		case reflect.Float32,
+			reflect.Float64:
+			value = c.GetFloatValue(apolloKeyName, 0)
 		default:
 			return fmt.Errorf("current field type is not be supported")
 		}
@@ -212,5 +215,15 @@ func (c *apolloClient) GetBoolValue(key string, defaultValue bool) bool {
 	}
 
 	vv, _ := strconv.ParseBool(v)
+	return vv
+}
+
+func (c *apolloClient) GetFloatValue(key string, defaultValue float64) float64 {
+	v := c.client.GetString(key, agollo.WithNamespace(c.namespace))
+	if v == "" {
+		return defaultValue
+	}
+
+	vv, _ := strconv.ParseFloat(v, 64)
 	return vv
 }
