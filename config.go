@@ -1,47 +1,53 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"os"
+	"errors"
+	"github.com/philchia/agollo/v4"
 )
 
-type ApolloResponse struct {
-	Appid          string            `json:"appid"`
-	Cluster        string            `json:"cluster"`
-	NamespaceName  string            `json:"namespaceName"`
-	Configurations map[string]string `json:"configurations"`
-	ReleaseKey     string            `json:"releaseKey"`
+type ApolloConfig struct {
+	AppID      string
+	LoadConfig func() error
 }
 
-func LoadApolloConfig(appId, namespace string, appConfig interface{}) error {
-	apolloURL := os.Getenv("APOLLO_META_SERVER_URL")
-	if apolloURL == "" {
-		apolloURL = "http://120.77.148.214:18011/"
+var apolloClient agollo.Client
+var currentNamespace string
+
+func NewApolloService(conf *ApolloConfig) error {
+	if conf.AppID == "" {
+		return errors.New("AppID can't not be empty")
 	}
 
-	// 获取 ApolloResponse 远程配置
-	url := fmt.Sprintf("%s/configs/%s/default/%s", apolloURL, appId, namespace)
-	get, err := http.Get(url)
+	// 初始化配置
+	c := &agollo.Conf{
+		AppID:           conf.AppID,
+		Cluster:         "default",
+		MetaAddr:        GetApolloServerURL(),
+		AccesskeySecret: GetApolloAccesskeySecret(),
+	}
+
+	// 设置namespace
+	setApolloNamespaces(c)
+
+	// 启动apollo client
+	apolloClient = agollo.NewClient(c,
+		agollo.SkipLocalCache(),
+	)
+
+	err := apolloClient.Start()
 	if err != nil {
 		return err
 	}
-	apollo := new(ApolloResponse)
-	all, _ := ioutil.ReadAll(get.Body)
-	if err := json.Unmarshal(all, apollo); err != nil {
-		return err
+
+	// 读取并映射配置
+	if conf.LoadConfig != nil {
+		err = conf.LoadConfig()
+		if err != nil {
+			return err
+		}
 	}
 
-	bytes, err := json.Marshal(apollo.Configurations)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(bytes, appConfig)
-	if err != nil {
-		return err
-	}
-
+	// 开启更新监听
+	watchUpdateConfig()
 	return nil
 }
