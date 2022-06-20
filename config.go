@@ -22,8 +22,8 @@ func NewApolloService(conf *ApolloConfig) error {
 	c := &agollo.Conf{
 		AppID:           conf.AppID,
 		Cluster:         "default",
-		MetaAddr:        GetApolloServerURL(),
-		AccesskeySecret: GetApolloAccesskeySecret(),
+		MetaAddr:        getApolloServerURL(),
+		AccesskeySecret: getApolloAccesskeySecret(),
 	}
 
 	// 设置namespace

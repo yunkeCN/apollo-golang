@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/yunkeCN/apollo-golang/setup"
+	"github.com/yunkeCN/apollo-golang/v2/setup"
 )
 
 // MapConfig loads config to struct v.

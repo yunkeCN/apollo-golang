@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/philchia/agollo/v4"
-	"github.com/yunkeCN/apollo-golang/setup"
+	"github.com/yunkeCN/apollo-golang/v2/setup"
 )
 
 func watchUpdateConfig() {

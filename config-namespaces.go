@@ -17,7 +17,7 @@ func setApolloNamespaces(conf *agollo.Conf) {
 func getApolloNamespace() string {
 	apolloNamespace := NAMESPACE_APP
 
-	tenantNamespace := GetTenantNamespace()
+	tenantNamespace := getTenantNamespace()
 	if tenantNamespace == "" || tenantNamespace == "g2" {
 		return apolloNamespace
 	}
